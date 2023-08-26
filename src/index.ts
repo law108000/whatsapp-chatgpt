@@ -18,7 +18,19 @@ const start = async () => {
 	// WhatsApp Client
 	const client = new Client({
 		puppeteer: {
-			args: ["--no-sandbox"]
+			args: [
+				"--no-sandbox",
+				// fix "out of memory" error
+				"--disable-dev-shm-usage",
+				"--disable-setuid-sandbox",
+				"--unhandled-rejections=strict",
+				"--disable-extensions",
+				"--no-first-run",
+				"--no-zygote",
+				"--single-process",
+				"--disable-gpu"
+			],
+			headless: false
 		},
 		authStrategy: new LocalAuth({
 			clientId: undefined,
