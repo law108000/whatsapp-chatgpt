@@ -8,7 +8,7 @@ import config from "../config";
 import * as cli from "../cli/ui";
 
 // ChatGPT & DALLE
-import { handleMessageGPT, handleDeleteConversation } from "../handlers/gpt";
+import { handleMessageGPT, handleMessageGPTStream, handleDeleteConversation } from "../handlers/gpt";
 import { handleMessageDALLE } from "../handlers/dalle";
 import { handleMessageAIConfig } from "../handlers/ai-config";
 
@@ -26,22 +26,22 @@ import { botReadyTimestamp } from "../index";
 async function handleIncomingMessage(message: Message) {
 	let messageString = message.body;
 
-	// Prevent handling old messages
-	if (message.timestamp != null) {
-		const messageTimestamp = new Date(message.timestamp * 1000);
+	// // Prevent handling old messages
+	// if (message.timestamp != null) {
+	// 	const messageTimestamp = new Date(message.timestamp * 1000);
 
-		// If startTimestamp is null, the bot is not ready yet
-		if (botReadyTimestamp == null) {
-			cli.print("Ignoring message because bot is not ready yet: " + messageString);
-			return;
-		}
+	// 	// If startTimestamp is null, the bot is not ready yet
+	// 	if (botReadyTimestamp == null) {
+	// 		cli.print("Ignoring message because bot is not ready yet: " + messageString);
+	// 		return;
+	// 	}
 
-		// Ignore messages that are sent before the bot is started
-		if (messageTimestamp < botReadyTimestamp) {
-			cli.print("Ignoring old message: " + messageString);
-			return;
-		}
-	}
+	// 	// Ignore messages that are sent before the bot is started
+	// 	if (messageTimestamp < botReadyTimestamp) {
+	// 		cli.print("Ignoring old message: " + messageString);
+	// 		return;
+	// 	}
+	// }
 
 	// Ignore groupchats if disabled
 	if ((await message.getChat()).isGroup && !config.groupchatsEnabled) return;
@@ -128,7 +128,7 @@ async function handleIncomingMessage(message: Message) {
 	// GPT (!gpt <prompt>)
 	if (startsWithIgnoreCase(messageString, config.gptPrefix)) {
 		const prompt = messageString.substring(config.gptPrefix.length + 1);
-		await handleMessageGPT(message, prompt);
+		await handleMessageGPTStream(message, prompt);
 		return;
 	}
 
@@ -140,7 +140,7 @@ async function handleIncomingMessage(message: Message) {
 	}
 
 	if (!config.prefixEnabled || (config.prefixSkippedForMe && selfNotedMessage)) {
-		await handleMessageGPT(message, messageString);
+		await handleMessageGPTStream(message, messageString);
 		return;
 	}
 }
